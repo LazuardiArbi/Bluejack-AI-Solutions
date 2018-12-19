@@ -100,11 +100,15 @@ def build_model(input):
 trn_input = tf.placeholder(tf.float32,[None, num_of_input])
 trn_target = tf.placeholder(tf.float32,[None, num_of_output])
 
+save_dir = "./bpnn-food-model/"
+filename = "bpnn.ckpt"
+
 learning_rate = .5
 num_of_epoch = 5000
-report_between = 500
+report_between = 100
 
 def optimize(model, training_dataset, validation_dataset, test_dataset):
+    validation_error = sys.float_info.max
     error = tf.reduce_mean(.5 * (trn_target-model)**2)
     optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(error)
     correct_prediction = tf.equal(tf.argmax(model,1), tf.argmax(trn_target,1))
@@ -112,34 +116,39 @@ def optimize(model, training_dataset, validation_dataset, test_dataset):
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
+        saver = tf.train.Saver(tf.global_variables())
+
         for epoch in range(num_of_epoch + 1):
             feature_training = [data[0] for data in training_dataset]
             result_training = [data[1] for data in training_dataset]
             feed_training = {trn_input: feature_training, trn_target: result_training}
-            _, error_value_training, accuracy_value_training = sess.run([optimizer, error, accuracy], feed_training)
+            _, error_value_training, _ = sess.run([optimizer, error, accuracy], feed_training)
 
             
             if epoch % report_between == 0:
-                print("| Training Dataset \t-\t |Epoch : {0:6d} |\t Error : {1:12f} |".format(epoch, error_value_training*100))
+                print("| {0:12s} | {1:12s} | {2:12s} |".format("Dataset","Epoch","Error"))
+                print("| {0:12s} | {1:12d} | {2:12f} |".format("Training",epoch, error_value_training*100))
 
             if epoch >= 500:
                 feature_validation = [data[0] for data in validation_dataset]
                 result_validation = [data[1] for data in validation_dataset]
                 feed_validation = {trn_input: feature_validation, trn_target: result_validation}
-                _, error_value_validation, accuracy_value_validation = sess.run([optimizer, error, accuracy], feed_validation)
-
+                _, error_value_validation, _ = sess.run([optimizer, error, accuracy], feed_validation)
+                
                 if epoch % report_between == 0:
-                    print("| Validation Dataset \t-\t |Epoch : {0:6d} |\t Error : {1:12f} |".format(epoch, error_value_validation*100))
-            
+                    print("| {0:12s} | {1:12d} | {2:12f} |".format("Validation",epoch, error_value_validation*100))
+                    if error_value_validation < validation_error:
+                        validation_error = error_value_validation
+                        saver.save(sess, save_dir + filename, epoch)
+
             if epoch % report_between == 0:
                 print()
-
+                
         feature_test = [data[0] for data in test_dataset]
         result_test = [data[1] for data in test_dataset]
         feed_test = {trn_input: feature_test, trn_target: result_test}
-        error_value_test, accuracy_value_test = sess.run([error ,accuracy], feed_test)
+        _, accuracy_value_test = sess.run([error ,accuracy], feed_test)
+        print("Testing Accuracy: ", accuracy_value_test*100)
 
-        print("Tasting Statistic \t-\t Accuracy: ", accuracy_value_test*100)
-                
 model = build_model(trn_input)
 optimize(model, training_dataset, validation_dataset, test_dataset)
