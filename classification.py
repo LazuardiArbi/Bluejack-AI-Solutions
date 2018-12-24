@@ -21,8 +21,8 @@ def load_data(path):
 def preprocessing(dataset):
     preprocess = []
     result_list = ['a','b','c','d','e']
-    max_list = [sys.float_info.min for x in range(len(dataset))]
-    min_list = [sys.float_info.max for x in range(len(dataset))]
+    max_list = [sys.float_info.min for x in range(14)]
+    min_list = [sys.float_info.max for x in range(14)]
 
     for features, result in dataset:
         for x in range(len(features)):
