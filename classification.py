@@ -124,7 +124,6 @@ def optimize(model, training_dataset, validation_dataset, test_dataset):
             feed_training = {trn_input: feature_training, trn_target: result_training}
             _, error_value_training, _ = sess.run([optimizer, error, accuracy], feed_training)
 
-            
             if epoch % report_between == 0:
                 print("| {0:12s} | {1:12s} | {2:12s} |".format("Dataset","Epoch","Error"))
                 print("| {0:12s} | {1:12d} | {2:12f} |".format("Training",epoch, error_value_training*100))
@@ -137,10 +136,12 @@ def optimize(model, training_dataset, validation_dataset, test_dataset):
                 
                 if epoch % report_between == 0:
                     print("| {0:12s} | {1:12d} | {2:12f} |".format("Validation",epoch, error_value_validation*100))
+                
+                if epoch % 500 == 0:
                     if error_value_validation < validation_error:
                         validation_error = error_value_validation
                         saver.save(sess, save_dir + filename, epoch)
-
+            
             if epoch % report_between == 0:
                 print()
                 
