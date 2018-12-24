@@ -137,7 +137,7 @@ random.shuffle(dataset)
 dataset = np.array(dataset)
 
 som = SOM(5,5,3)
-som.train(dataset, 2000)
+som.train(dataset, 5000)
 
 plt.imshow(som.cluster)
 plt.show()
